@@ -1,0 +1,111 @@
+@host = http://localhost:5202
+
+### Registro. El rol lo pone el servidor (queda Entrenador). Aunque mandes rol, se ignora.
+POST {{host}}/api/auth/registro
+Content-Type: application/json
+
+{
+  "correo": "nuevo.entrenador@gimnasioaura.com",
+  "clave": "Prueba.2026",
+  "rol": "Recepcionista"
+}
+
+###
+
+### Login recepcionista
+# @name loginRecepcion
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{
+  "correo": "recepcion@gimnasioaura.com",
+  "clave": "Recepcion.2026"
+}
+
+###
+
+### Login entrenador
+# @name loginEntrena
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{
+  "correo": "entrena@gimnasioaura.com",
+  "clave": "Entrena.2026"
+}
+
+###
+
+### Login inválido (401), da igual si el correo no existe o la clave está mal
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{
+  "correo": "recepcion@gimnasioaura.com",
+  "clave": "clave-que-no-es"
+}
+
+###
+
+### Perfil sin token (401)
+GET {{host}}/api/auth/perfil
+
+###
+
+### Perfil con token de recepcionista (200). Los datos salen del token.
+GET {{host}}/api/auth/perfil
+Authorization: Bearer {{loginRecepcion.response.body.$.token}}
+
+###
+
+### Planes públicos (200 sin token)
+GET {{host}}/api/planes
+
+###
+
+### Miembros sin token (401)
+GET {{host}}/api/miembros
+
+###
+
+### Crear plan como entrenador (403)
+POST {{host}}/api/planes
+Authorization: Bearer {{loginEntrena.response.body.$.token}}
+Content-Type: application/json
+
+{
+  "nombre": "Nocturno",
+  "precioMensual": 69.90,
+  "duracionMeses": 1,
+  "descripcion": "Horario de noche."
+}
+
+###
+
+### Crear plan como recepcionista (201)
+POST {{host}}/api/planes
+Authorization: Bearer {{loginRecepcion.response.body.$.token}}
+Content-Type: application/json
+
+{
+  "nombre": "Nocturno",
+  "precioMensual": 69.90,
+  "duracionMeses": 1,
+  "descripcion": "Horario de noche."
+}
+
+###
+
+### Nombre de plan repetido (409)
+POST {{host}}/api/planes
+Authorization: Bearer {{loginRecepcion.response.body.$.token}}
+Content-Type: application/json
+
+{
+  "nombre": "Básico",
+  "precioMensual": 55,
+  "duracionMeses": 1,
+  "descripcion": "Otro básico."
+}
+
+###
